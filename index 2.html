@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Good Company Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'DM Sans',sans-serif;background:#FAF9F7;color:#2C2C2C;-webkit-font-smoothing:antialiased;overflow-x:hidden;height:100%}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px}
+button{font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:0 auto;background:#FAF9F7;min-height:100vh;position:relative}
+.header{background:linear-gradient(135deg,#F5A623 0%,#E8960A 100%);padding:14px 16px 12px;position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;gap:8px}
+.header-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-title{font-size:15px;font-weight:700;color:#fff}
+.header-sub{font-size:10px;color:rgba(255,255,255,0.8)}
+.content{padding:16px;padding-bottom:100px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #E8E6E3;display:flex;padding:6px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-icon{font-size:20px;transition:opacity 0.15s}
+.nav-label{font-size:10px;font-weight:500;color:#999;transition:all 0.15s}
+.nav-btn.active .nav-icon{opacity:1}
+.nav-btn:not(.active) .nav-icon{opacity:0.5}
+.nav-btn.active .nav-label{font-weight:700;color:#F5A623}
+.section-label{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.card{background:#fff;border-radius:14px;border:1px solid #EBE9E6;margin-bottom:10px;overflow:hidden;transition:all 0.2s;cursor:pointer}
+.card:active{transform:scale(0.99)}
+.card.expanded{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.badge{color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;white-space:nowrap}
+.chip{padding:5px 9px;border-radius:20px;border:1px solid #E0E0E0;background:#fff;cursor:pointer;font-size:11px;font-weight:500;color:#666;white-space:nowrap;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.chip.active{border:2px solid #F5A623;background:#FFF8ED;color:#E8960A;font-weight:600}
+.knowhow-box{font-size:12px;color:#555;line-height:1.5;background:#FFF8ED;padding:10px;border-radius:8px}
+.prompt-box{font-size:13px;color:#333;font-style:italic;line-height:1.5;background:#EBF5FB;padding:10px;border-radius:8px}
+.insight-box{background:#FFF8ED;border-radius:10px;padding:12px;border:1px solid #F5D89A}
+.circle-num{width:36px;height:36px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.circle-num-sm{width:24px;height:24px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.progress-bar{display:flex;gap:3px;margin-bottom:16px}
+.progress-seg{flex:1;height:4px;border-radius:2px;transition:background 0.3s}
+.convo-option{padding:12px 14px;border-radius:10px;border:1px solid #E0E0E0;background:#FAFAFA;cursor:pointer;text-align:left;font-size:13px;color:#555;transition:all 0.15s;font-family:'DM Sans',sans-serif;width:100%;display:block}
+.convo-option.selected{border:2px solid #F5A623;background:#FFF8ED;color:#E8960A;font-weight:600}
+.btn-primary{padding:14px;border-radius:12px;background:#F5A623;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-secondary{padding:14px;border-radius:12px;background:#fff;border:1px solid #E0E0E0;font-size:14px;font-weight:600;cursor:pointer;color:#666;font-family:'DM Sans',sans-serif}
+.indicator-line{font-size:12px;color:#555;line-height:1.5;padding:3px 0 3px 12px}
+@media(max-width:480px){.app{max-width:100%}.nav{max-width:100%}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const e=React.createElement,{useState:S,useMemo:M}=React;
+
+const STATES=[
+{id:1,name:"Making Connections",short:"Connections",color:"#4CAF50",tagline:"Staying connected and involved",quote:"I don\u2019t go out as much as I used to \u2014 I can feel my world shrinking.",summary:"A space for people experiencing loneliness or a shrinking world. This stage is crucial: intentional choices can keep life full, active, and connected.",whoIsHere:["Natural changes of ageing affecting independence","Mobility or sensory changes","Memory lapses, no longer driving","Bereavement or shrinking income","Going out less, giving up activities"],emotionalIndicators:["Feeling lonely, even if you wouldn\u2019t use that word","World quietly getting smaller","Going out less / giving things up","Diminishing confidence socially","Worried about \u2018keeping up\u2019","Proud of managing alone \u2014 but missing company","Slightly unsure about the future"]},
+{id:2,name:"Something\u2019s Changing",short:"Changing",color:"#FF9800",tagline:"When things don\u2019t feel quite right",quote:"Something feels different, but I can\u2019t quite name it.",summary:"A space for members who feel things don\u2019t feel quite right. Done out of love, pride, or fear \u2014 but it can leave both people feeling emotionally alone.",whoIsHere:["Subtle changes can no longer be brushed aside","Memory slips, confusion in familiar places","Irritability or a gut feeling something\u2019s wrong","Protective of each other, compensating so others don\u2019t notice","Aware changes are happening but struggling to get others to see it","Fear of what the future holds, adjusting to a new reality"],emotionalIndicators:["A growing sense of unease that something is wrong","Subtle personality changes (sometimes not in a good way)","Denial from partner/parent or from yourself","Frustration that others don\u2019t see what you see","Unease about unusual decisions or behaviour","Feeling shut out, powerless or dismissed","Lonely, even when sitting next to each other"]},
+{id:3,name:"Keeping Normal",short:"Normal",color:"#2196F3",tagline:"Holding onto routines and \u2018us\u2019",quote:"Life is still good, we just have to work harder to keep it that way.",summary:"A space when independence still largely exists but your \u2018normal\u2019 is changing and you are adapting to protect it. Life still feels \u2018normal,\u2019 but it takes more effort \u2014 and there\u2019s a sense this won\u2019t last forever.",whoIsHere:["Often follows a diagnosis","Determined to keep things as normal as possible","Independence largely remains \u2014 still driving, managing activities","Living day by day, holding tightly to routines and relationships","Staying active, seeing friends, taking holidays","Wanting to stay \u2018husband and wife\u2019 not \u2018carer and patient\u2019"],emotionalIndicators:["Proud of coping","Adjusting expectations quietly","Sadness beneath the surface","Working harder to keep life feeling ordinary","Anxious about what the future might bring","Wanting clarity but not fear-based messages"],realInsights:{title:"From a recent Keeping Normal Circle",insights:["Members shared how their husbands living with dementia often lacked empathy when they were feeling fatigued or in pain \u2014 all members could identify with this","Importance of husbands remaining as independent as possible \u2014 whether driving or going out for a walk alone","Members shared experiences of research trials \u2014 the process, selection, and expectations","Practical knowledge sharing about driving assessments was immediately useful for a member whose husband faces one next week","Members found it difficult at times to remain patient and to take time for themselves","Members were deeply appreciative of having the space to talk openly to others who understood"]}},
+{id:4,name:"Keeping Going",short:"Going",color:"#E91E63",tagline:"When support helps you carry on",quote:"I\u2019m coping, but it\u2019s costing me more than I expected.",summary:"A space where independence is still possible, but support becomes essential. Without support, the risk of a crisis grows.",whoIsHere:["Independence is possible, but not without help","Partner or adult child begins to feel like a carer, not spouse","Emotional and physical fatigue building","Disrupted sleep, repetition, agitation","Time away may shrink to hours\u2026 or disappear completely"],emotionalIndicators:["Exhausted and overwhelmed","Strong and committed","Guilt about feeling frustrated","Fear of reaching breaking point","Exasperation and anger","Anxiety about losing personal health"]},
+{id:5,name:"Together Apart",short:"Apart",color:"#9C27B0",tagline:"Life in different postcodes",quote:"I\u2019ve let go of one role, but I\u2019m not sure who I am now.",summary:"A space for navigating the emotional complexity if a partner moves into residential care. The work of this stage is rebuilding: new rhythms, managing visits, slowly reconnecting with your identity.",whoIsHere:["Partner/parent has moved into residential care","Practical pressure eases, emotional toll rises","Missing the routines built over decades","Determined to ensure good care","No longer primary caregiver, unsure where they fit","Financial pressure of paying up to \u00a38,000 a month"],emotionalIndicators:["Guilt about not being able to cope at home","Sometimes \u2018sheer relief\u2019 when daily responsibility ends","Loneliness and emptiness of being at home alone","Loyalty mixed with resentment","Frustration at the system, feeling out of control","Fear of running out of money"]},
+{id:6,name:"Finding Myself",short:"Finding Me",color:"#009688",tagline:"Rediscovering yourself after caring",quote:"Now you\u2019re looking at your whole future, not just the next few months.",summary:"Rediscovering yourself after caring. A period of painful transition but also possibility. The work is rediscovery.",whoIsHere:["After the death of the person they cared for","Often grieved emotionally long before physical loss","Facing an entirely new landscape \u2014 big life decisions","Learning who you are again","Pressure from others to move on","Rebuilding confidence, rekindling friendships"],emotionalIndicators:["Lonely and hopeful at the same time","Loss of confidence","Curious about\u2026 \u2018what now?\u2019","Proud of surviving","Unsure, but open","Feeling vulnerable and alone"]}
+];
+
+const NEEDS=[
+{id:"hobbies",name:"Hobbies & meeting new people",short:"Hobbies",icon:"\ud83c\udfa8"},
+{id:"similar",name:"Meet people in similar situations",short:"Peer support",icon:"\ud83d\udc65"},
+{id:"emotional",name:"Emotional support",short:"Emotional",icon:"\ud83d\udc9b"},
+{id:"dementia",name:"Understand dementia",short:"Dementia info",icon:"\ud83e\udde0"},
+{id:"navigate",name:"Navigate health & social care",short:"System nav",icon:"\ud83c\udfe5"},
+{id:"independent",name:"Live independently at home",short:"Home",icon:"\ud83c\udfe0"},
+{id:"financial",name:"Financial & legal support",short:"Financial",icon:"\u2696\ufe0f"},
+{id:"break_",name:"Take a break",short:"Respite",icon:"\u2615"},
+{id:"mobility",name:"Mobility & physical health",short:"Health",icon:"\ud83d\udeb6"},
+{id:"experience",name:"Use lived experience to help others",short:"Give back",icon:"\ud83c\udf1f"},
+{id:"relative",name:"Support a relative from a distance",short:"Distance care",icon:"\ud83d\udcde"},
+{id:"connect",name:"Good Company Connect",short:"Stay connected",icon:"\ud83d\udcf1"}
+];
+
+const MX={
+1:{hobbies:{r:"High",d:"Carers at this stage are often still active but starting to feel the pull of caring responsibilities. They may be giving up hobbies without realising it. This is a prevention window.",k:"Local hobby clubs and classes, Good Company Clubs schedule, tips on maintaining personal interests alongside caring, community activity finder.",p:"What hobbies did you used to enjoy that you\u2019ve had less time for? Would you be interested in a Club where your partner can come too?"},similar:{r:"Medium",d:"They may not yet identify as a \u2018carer\u2019 and may resist the label. Peer connection works best when framed around shared interests rather than shared diagnosis.",k:"Carer Circles overview, stories from members who joined early, introductions to other members at Clubs.",p:"Do you know other people who are going through something similar? Would it help to meet others who understand?"},emotional:{r:"Medium",d:"Feelings may be subtle \u2014 a vague sense that life is narrowing, low-level worry. They may not yet recognise the emotional load.",k:"Listening ear approach, when to signpost to Dementia Carers Count or Health in Mind, normalising early emotions.",p:"How are you feeling about things at the moment? Is anything keeping you up at night?"},dementia:{r:"Medium\u2013High",d:"If a diagnosis is recent or suspected, there\u2019s a hunger for information but also overwhelm. Bite-sized, relatable content works best.",k:"Good Company dementia blogs, DISC/RSM/DCC training info, \u2018What is dementia?\u2019 one-pager, understanding early signs.",p:"Is there anything about the diagnosis that you\u2019d like to understand better?"},navigate:{r:"Low\u2013Medium",d:"May not yet need intensive system navigation but could benefit from knowing what\u2019s available before a crisis.",k:"Overview of health and social care system, \u2018What to expect\u2019 guide, dementia support worker role explained.",p:"Do you know who to contact if you need extra support? Have you been offered a carers assessment?"},independent:{r:"Low",d:"Less relevant at this stage, though they may be thinking ahead about the home environment.",k:"Home safety basics, fire safety visits, technology overview.",p:"Are there any practical things at home that are becoming more difficult?"},financial:{r:"Medium",d:"Key early-action window. LPAs and financial planning are much easier to set up now than later.",k:"LPA guidance, Attendance Allowance info, wills and estate planning signposting, Council Tax reduction.",p:"Have you thought about things like Lasting Power of Attorney? It\u2019s much easier to sort out now while things are calmer."},break_:{r:"Low\u2013Medium",d:"They may not feel they need a break yet, or may feel guilty about wanting one. Normalising breaks early is preventive.",k:"Specialist Hosting overview, Association of Carers free respite, personal assistants info.",p:"Do you ever get time to yourself? What would you do with a free morning each week?"},mobility:{r:"Low\u2013Medium",d:"Their own health may be taking a back seat. Gentle prompts about staying active are valuable.",k:"Local walking groups, exercise classes, NHS health check reminders.",p:"Are you managing to stay active yourself? Sometimes carers put their own health second."},experience:{r:"Medium",d:"Some early-stage carers are keen to contribute and find purpose.",k:"LEAP panel information, Know-How Champions role, volunteering opportunities.",p:"You\u2019ve clearly learned a lot already. Would you ever want to share that with others?"},relative:{r:"Medium\u2013High",d:"Long-distance carers are often in this state \u2014 worried but not yet in crisis.",k:"Remote caring tips, technology for monitoring, coordination with local services, how to have difficult conversations.",p:"How do you keep an eye on things when you\u2019re not there? What worries you most?"},connect:{r:"High",d:"Building trust and establishing the relationship is essential. Regular, light-touch contact.",k:"Welcome call scripts, new member engagement tips, newsletter sign-up, event invitations.",p:"I\u2019m your Concierge \u2014 think of me as someone who\u2019s here whenever you need us."}},
+2:{hobbies:{r:"Medium",d:"Carers may be withdrawing from social activities as changes at home demand more attention.",k:"Clubs where carers can bring the person they support, hobby-based Circles, flexible attendance.",p:"Are you still managing to do the things you enjoy? What\u2019s getting harder to fit in?"},similar:{r:"High",d:"Isolation often accelerates. Carers feel alone with changes they can\u2019t fully explain to others.",k:"Carer Circles matched by stage, peer introductions, stories of other members at this stage.",p:"Do you feel like other people understand what\u2019s happening? Would it help to talk to someone who\u2019s been through it?"},emotional:{r:"High",d:"Anxiety, grief, confusion, and denial often coexist. The relationship is shifting. Feeling shut out, powerless or dismissed.",k:"Active listening techniques, counselling referral, Dementia Carers Count programme, normalising ambiguous grief.",p:"How are you coping with the changes? It\u2019s okay to feel a lot of different things at once."},dementia:{r:"High",d:"Changes are harder to ignore. Practical strategies for specific behaviours and symptoms are needed.",k:"Behaviour-specific guides (sundowning, repetition, confusion), communication tips, DISC/RSM training.",p:"What changes are you noticing? Are there particular moments or behaviours that are hardest to deal with?"},navigate:{r:"Medium\u2013High",d:"May be dealing with GP appointments, memory clinics, or trying to get a formal assessment.",k:"How to request a carers assessment, what happens at a memory clinic, how to talk to the GP.",p:"Are you getting the support you need from the GP? Do you know about carers assessments?"},independent:{r:"Medium",d:"Home adaptations may be becoming relevant \u2014 safety concerns, wandering, falls risk.",k:"Home safety assessment info, stairlift and adaptation signposting, technology and trackers.",p:"Is the home still working well for you both? Any safety concerns?"},financial:{r:"High",d:"Urgent if LPAs are not yet in place. Attendance Allowance and other benefits become relevant.",k:"LPA urgency messaging, Attendance Allowance application guide, CHC funding basics, Council Tax reduction.",p:"Have you got Lasting Power of Attorney sorted? Are you claiming everything you\u2019re entitled to?"},break_:{r:"Medium\u2013High",d:"The caring load is increasing. Breaks are harder to take but more necessary.",k:"Specialist Hosting service, respite options, Association of Carers, day care options.",p:"When was the last time you had proper time to yourself?"},mobility:{r:"Medium",d:"Carer health often declines as the load increases.",k:"Carer health check reminder, local exercise options, stress management tips.",p:"Are you looking after your own health too? Have you seen your GP recently?"},experience:{r:"Low\u2013Medium",d:"May feel too overwhelmed to give back right now.",k:"Low-commitment ways to contribute, sharing tips at Circles.",p:"No pressure, but if there\u2019s anything you\u2019ve found that works, we\u2019d love to share it."},relative:{r:"High",d:"Long-distance carers are often most distressed at this stage.",k:"Coordinating local support, technology for remote monitoring, having conversations about increasing support.",p:"How are you managing from a distance? What would make the biggest difference?"},connect:{r:"High",d:"More frequent check-ins needed. Building deeper trust as complexity increases.",k:"Proactive check-in schedule, no-show follow-up protocols, sensitive communication tips.",p:"I\u2019m going to check in with you a bit more regularly if that\u2019s okay."}},
+3:{hobbies:{r:"High",d:"Carers are fighting to maintain their identity beyond the carer role. Clubs and hobbies are a vital anchor to normality.",k:"Clubs where couples can attend together, hobby-matching, flexible scheduling. Activities where both can participate.",p:"What does a \u2018normal\u2019 week look like for you? What would you like more of?"},similar:{r:"High",d:"Circles need to feel social, not clinical. Members want to stay \u2018husband and wife\u2019 not \u2018carer and patient\u2019. Recognition replaces explanation.",k:"Keeping Normal Circle (monthly, up to 6 members, 90 mins). Introductions to couples at similar stages.",p:"We have a group of people who are all in a similar boat. It\u2019s very relaxed \u2014 no pressure."},emotional:{r:"Medium\u2013High",d:"Proud of coping but adjusting expectations quietly. Sadness beneath the surface. Difficulty remaining patient. Finding it hard when partner lacks empathy for their own fatigue or pain.",k:"Gentle emotional support, normalising the effort of \u2018keeping normal\u2019, professional support signposting. Validation that it\u2019s hard even when things look okay.",p:"Behind keeping things normal, how are you really feeling? It\u2019s okay to say it\u2019s hard even when things look \u2018fine\u2019."},dementia:{r:"Medium\u2013High",d:"They want practical, actionable advice. Interested in research trials, driving assessments, maintaining partner\u2019s independence safely. Want clarity but not fear-based messages.",k:"Tips for adapting daily routines, communication strategies that preserve dignity. Research trial info. Driving assessment guidance.",p:"Are there particular moments in the day that have become tricky? What would help you feel more prepared?"},navigate:{r:"Medium",d:"They may resist engaging the system because it feels like admitting things aren\u2019t normal.",k:"Gentle framing as \u2018keeping things on track\u2019. Planning ahead guide. Carers assessment as \u2018good housekeeping\u2019.",p:"It can help to have things lined up in the background, just in case."},independent:{r:"Medium",d:"Small adaptations that don\u2019t disrupt normality. Partner is still driving and managing activities \u2014 but for how long?",k:"Subtle home adaptations (non-clinical), technology that blends in, member-recommended tradespeople. Driving assessment info.",p:"Are there small things that would make life at home easier without changing everything?"},financial:{r:"Medium\u2013High",d:"Financial pressures may be building. Benefits framed as practical planning, not crisis.",k:"Attendance Allowance as \u2018what you\u2019re entitled to\u2019, budgeting tips, LPA if not done.",p:"Are you claiming everything you\u2019re entitled to? It\u2019s not charity \u2014 it\u2019s yours."},break_:{r:"High",d:"Critical. Carers often don\u2019t take breaks because they feel guilty. They need permission \u2014 framed as good for both.",k:"Specialist Hosting positioned as \u2018your partner gets to enjoy activities too\u2019. Mutual benefit framing. Association of Carers respite.",p:"If your partner was at a Club enjoying themselves for a morning, what would you do with that time?"},mobility:{r:"Medium",d:"Physical health maintenance important. Members spoke about their own fatigue and injuries going unacknowledged.",k:"Carer-specific exercise options, walking clubs, health MOT reminders. Self-care as maintenance not luxury.",p:"Keeping yourself well is part of keeping things normal. Are you finding time to look after yourself?"},experience:{r:"Medium",d:"Giving back reinforces identity as capable \u2014 not just a carer. Members actively share practical knowledge in Circles.",k:"LEAP involvement, sharing tips at Circles, contributing to know-how library.",p:"You\u2019ve figured out so many ways to keep life going. Would you share those tips?"},relative:{r:"Medium",d:"Relevant for those supporting from a distance who want to help maintain normality.",k:"Remote support strategies, coordinating with local services, technology.",p:"How do you help keep things feeling normal when you\u2019re not there every day?"},connect:{r:"High",d:"Consistent, reliable relationship. Monthly Circle attendance is the anchor.",k:"Regular but light-touch check-ins, remembering personal details, milestone acknowledgement.",p:"Just checking in \u2014 how\u2019s the week been? How was the Circle?"}},
+4:{hobbies:{r:"Medium",d:"Hobbies may have fallen away. Reintroducing them, even adapted, can be restorative.",k:"Adapted hobby options, Clubs with extra support, Specialist Hosting to enable attendance.",p:"I know things are tough, but is there anything you miss doing? Even something small?"},similar:{r:"High",d:"Peer support is critical. They need people who truly understand sustained caring \u2014 exhaustion, disrupted sleep, repetition, agitation.",k:"Keeping Going Circle (with Specialist Host for partner). Targeted peer introductions.",p:"Being around people who genuinely get it can make a real difference. Our Keeping Going Circle has a Host for your partner too."},emotional:{r:"Very High",d:"Exhausted and overwhelmed but strong and committed. Guilt about feeling frustrated. Fear of reaching breaking point.",k:"Burnout recognition checklist, professional counselling, Dementia Carers Count, crisis support.",p:"You\u2019re carrying a lot. How are you actually doing? Please be honest with me."},dementia:{r:"High",d:"Behaviours may be more challenging \u2014 disrupted sleep, repetition, agitation.",k:"Managing challenging behaviours, night-time disturbance tips, personal care guidance, continence support.",p:"What\u2019s the hardest thing to deal with right now, day to day?"},navigate:{r:"Very High",d:"Likely dealing with multiple agencies, assessments, reviews. The system is complex and exhausting.",k:"CHC funding guide, carers assessment refresh, advocacy services, how to challenge decisions.",p:"How are you finding dealing with the council, the NHS? Do you need someone to help navigate it?"},independent:{r:"High",d:"Home may need significant adaptation. Questions about whether home is still viable.",k:"Major home adaptations, assistive technology, night-time support, environmental risk assessment.",p:"Is the home still working? Are there safety concerns you\u2019re managing alone?"},financial:{r:"High",d:"Financial strain often peaks here. CHC, benefits reviews, care costs become urgent.",k:"CHC funding detailed guide, benefits review, financial planning for care, solicitor referrals.",p:"Are finances adding to the pressure? There may be things you\u2019re entitled to."},break_:{r:"Very High",d:"Make-or-break need. Without breaks, carers reach crisis point. Time away may have disappeared.",k:"All respite options: Specialist Hosting, personal assistants, day care, live-in care, emergency respite.",p:"When was the last time you had a proper break? Let\u2019s work on that together."},mobility:{r:"High",d:"Carer health often deteriorates significantly. Sleep disruption. Anxiety about losing personal health.",k:"GP referral for carers health check, physiotherapy, sleep hygiene, manual handling.",p:"Your health matters too. Are you in pain? Sleeping? Seen your GP?"},experience:{r:"Low",d:"Usually too depleted to contribute. Don\u2019t ask \u2014 leave the door open.",k:"Focus on receiving support, not giving it.",p:"You\u2019ve got nothing to prove. Focus on yourself right now."},relative:{r:"High",d:"Long-distance carers may be making difficult decisions about escalating care.",k:"Assessing whether home care is enough, residential care options, difficult family conversations.",p:"Are you worried that things need to change? What options have you considered?"},connect:{r:"Very High",d:"The Concierge relationship is most critical here. Without support, the risk of a crisis grows.",k:"Increased check-in frequency, crisis recognition, multi-channel contact.",p:"I\u2019m here for you. Can I call you twice a week for a while?"}},
+5:{hobbies:{r:"Medium\u2013High",d:"With partner in residential care, there\u2019s both time and a void. Missing routines built over decades.",k:"Clubs and classes, reconnecting with old interests, volunteering opportunities.",p:"Now that things have changed, is there anything you\u2019d like to pick up again?"},similar:{r:"Very High",d:"The guilt, grief, and complex emotions of residential care need shared understanding.",k:"Together Apart Circle. Peer introductions. Stories from members who\u2019ve been through it.",p:"Moving someone into care is one of the hardest decisions. Would it help to talk to others who understand?"},emotional:{r:"Very High",d:"Guilt about not coping at home. Sometimes \u2018sheer relief\u2019. Loneliness and emptiness at home alone. Loyalty mixed with resentment.",k:"Counselling referrals, specialist Circle facilitation, normalising conflicting emotions.",p:"How are you adjusting? It\u2019s normal to feel a dozen things at once. There\u2019s no wrong way to feel."},dementia:{r:"Medium",d:"Still relevant for understanding care and being an informed advocate.",k:"Understanding care home approaches, staying involved in care planning.",p:"Do you feel you understand what\u2019s happening with their care?"},navigate:{r:"High",d:"Care home fees, reviews, advocacy, complaints, CHC reassessments. Fear of running out of money.",k:"Care home rights, how to raise concerns, funding reviews, advocacy services, CQC info.",p:"Are you happy with the care home? Do you know your rights around reviews and fees?"},independent:{r:"Medium",d:"Now living alone, possibly for the first time in decades.",k:"Living alone tips, home security, meal support, social isolation prevention.",p:"How is it being at home on your own? Anything practical that would help?"},financial:{r:"High",d:"Care home fees up to \u00a38,000/month. Self-funding thresholds. Fear of running out of money.",k:"Care home fee guidance, self-funder info, financial advice signposting, benefit reassessment.",p:"Are care costs a concern? Let\u2019s look at this together."},break_:{r:"Low\u2013Medium",d:"The nature of \u2018break\u2019 has changed. They may need permission to enjoy time.",k:"Reframing breaks as self-care, holiday guidance, social activities.",p:"Are you giving yourself permission to enjoy your time?"},mobility:{r:"Medium\u2013High",d:"Years of caring may have taken a toll. Now is the time to recover.",k:"Health recovery after caring, exercise classes, health MOT, mental health support.",p:"Now is a good time to focus on your own health."},experience:{r:"High",d:"Many find enormous purpose in helping others earlier in the journey.",k:"LEAP panel, Concierge Host role, Know-How Champions, mentoring newer carers.",p:"You have such valuable experience. Would you like to help someone who\u2019s just starting?"},relative:{r:"Low",d:"Less relevant unless caring for someone else.",k:"",p:""},connect:{r:"High",d:"Don\u2019t let them disappear from the community.",k:"Transition check-in protocol, event invitations, acknowledging the change.",p:"You\u2019re still part of Good Company. How can we keep supporting you?"}},
+6:{hobbies:{r:"Very High",d:"Rebuilding identity, social connections, and purpose after bereavement.",k:"Full Club and Circle menu, hobby matching, community activities, volunteering.",p:"What brings you joy? What would you like your week to look like?"},similar:{r:"High",d:"Connecting with others who\u2019ve been through bereavement and are rebuilding. Pressure from others to \u2018move on\u2019.",k:"Finding Myself Circle. Bereavement peer groups. Introductions to members on similar path.",p:"Would it help to be around people who understand what you\u2019ve been through \u2014 without pressure to \u2018move on\u2019?"},emotional:{r:"High",d:"Often grieved long before physical loss. Lonely and hopeful at the same time. Loss of confidence.",k:"Bereavement support signposting, counselling, Cruse referral, normalising all emotions.",p:"How are you finding things? There\u2019s no timeline for grief."},dementia:{r:"Low",d:"Less relevant now.",k:"",p:""},navigate:{r:"Low\u2013Medium",d:"Post-bereavement admin. Big life decisions.",k:"Post-bereavement admin guide (\u2018Tell Us Once\u2019 service), estate support signposting.",p:"Have you managed the practical things? There are services to help."},independent:{r:"Medium\u2013High",d:"Facing an entirely new landscape. Home may feel too big, too quiet.",k:"Living alone adjustment tips, home safety, downsizing guidance.",p:"How does home feel now? Is it working for you?"},financial:{r:"Medium",d:"Widowhood brings financial changes \u2014 pension, benefits, property.",k:"Widowhood financial checklist, pension and benefit changes, Bereavement Support Payment.",p:"Has your financial situation changed? There may be things to claim."},break_:{r:"Low",d:"Shifts to self-care and permission to enjoy life.",k:"Holidays, social activities, permission to enjoy life.",p:"What would feel like a treat?"},mobility:{r:"Medium\u2013High",d:"Physical recovery from the caring years.",k:"Health check-up, exercise groups, walking clubs, physiotherapy.",p:"Your body\u2019s been through a lot too. Let\u2019s get you feeling stronger."},experience:{r:"Very High",d:"Proud of surviving. Often the most meaningful way to find purpose.",k:"LEAP panel, Concierge Host role, Know-How Champions, speaking, mentoring.",p:"Your experience could genuinely change someone else\u2019s life."},relative:{r:"Low",d:"Rarely relevant.",k:"",p:""},connect:{r:"High",d:"Critical they don\u2019t drift away. Active re-engagement.",k:"Bereavement follow-up, re-engagement invitations, celebrating their new chapter.",p:"You\u2019re still very much part of this community."}}
+};
+
+const KNOWHOW=[{"id": 1, "t": "A guide to getting a dementia diagnosis", "u": "https://www.thegoodcompanypeople.org/resource/memory-and-dementia-assessment-service", "n": "navigate", "a": ["Carer", "PLwD"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "High", "4": "Medium"}}, {"id": 2, "t": "What can a Dementia Support Worker do to help me?", "u": "https://www.thegoodcompanypeople.org/resource/carers-breaks-engagement-team", "n": "navigate", "a": ["Carer", "PLwD"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "High", "4": "High"}}, {"id": 3, "t": "Why filling in a Herbert Protocol can help you in a crisis", "u": "https://www.thegoodcompanypeople.org/resource/herbert-protocol", "n": "independent", "a": ["Carer"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 4, "t": "Financial support for your healthcare appointments", "u": "https://www.thegoodcompanypeople.org/resource/financial-support-for-your-healthcare-appointments", "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Medium", "2": "High", "3": "Very High", "4": "Very High", "5": "High", "6": "Medium"}}, {"id": 5, "t": "Council Tax Discount When You Care for Someone with Dementia", "u": "https://www.thegoodcompanypeople.org/resource/council-tax-reduction", "n": "financial", "a": ["Carer"], "s": "Published", "st": {"2": "High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 6, "t": "British Red Cross Home from Hospital Service", "u": "https://www.thegoodcompanypeople.org/resource/home-from-hospital-and-carer-s-crisis-response-service", "n": "navigate", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 7, "t": "Registering an Emergency Plan with CRESS", "u": "https://www.thegoodcompanypeople.org/resource/registering-an-emergency-plan-with-cress", "n": "independent", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "High", "3": "Very High", "4": "Very High", "5": "Medium", "6": "High"}}, {"id": 8, "t": "How to get free respite with the Association of Carers", "u": "https://www.thegoodcompanypeople.org/resource/respite-and-befriending-association-of-carers", "n": "break_", "a": ["Carer"], "s": "Published", "st": {"2": "Medium", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 9, "t": "Care Free - hotel breaks", "u": "https://www.thegoodcompanypeople.org/resource/a-well-deserved-break", "n": "break_", "a": ["Carer"], "s": "Published", "st": {"2": "Medium", "3": "Very High", "4": "Very High", "5": "High"}}, {"id": 10, "t": "Why pets are good for your brain", "u": "https://www.thegoodcompanypeople.org/resource/why-pets-are-good-for-your-brain", "n": "mobility", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Medium", "4": "Medium", "6": "Medium"}}, {"id": 11, "t": "How to get the Council to help with your bin collection", "u": "https://www.thegoodcompanypeople.org/resource/how-to-get-the-council-to-help-with-your-bin-collection", "n": "independent", "a": ["PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "Medium", "3": "Very High", "4": "Very High", "6": "Medium"}}, {"id": 12, "t": "Water Priority Service", "u": "https://www.thegoodcompanypeople.org/resource/water-priority-service", "n": "independent", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "High", "3": "Very High", "4": "Very High", "5": "Medium", "6": "Medium"}}, {"id": 13, "t": "How Amazon's Alexa Can Help People Living with Memory Changes or Dementia", "u": "https://www.thegoodcompanypeople.org/resource/how-amazon-s-alexa-can-help-people-living-with-memory-changes-or-dementia", "n": "independent", "a": ["PLwD", "Carer"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "High"}}, {"id": 14, "t": "Look after your hearing to prevent dementia", "u": "https://www.thegoodcompanypeople.org/resource/look-after-your-hearing-to-prevent-dementia", "n": "mobility", "a": ["PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Medium", "6": "Medium"}}, {"id": 15, "t": "The Wednesday Games Club", "u": "https://www.thegoodcompanypeople.org/resource/the-wednesday-games-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 16, "t": "Support for people diagnosed with hearing or sight loss", "u": "https://www.thegoodcompanypeople.org/resource/support-for-people-diagnosed-with-hearing-or-sight-loss", "n": "navigate", "a": ["PLwD", "50+"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "High", "4": "High"}}, {"id": 17, "t": "How to Obtain a Blue Badge: A Step-by-Step Guide", "u": "https://www.thegoodcompanypeople.org/resource/how-to-obtain-a-blue-badge-a-step-by-step-guide", "n": "independent", "a": ["PLwD", "50+", "Carer"], "s": "Published", "st": {"1": "Medium", "2": "High", "3": "Very High", "4": "Very High", "6": "Medium"}}, {"id": 18, "t": "How can the Frailty Team help me?", "u": "https://www.thegoodcompanypeople.org/resource/how-can-the-frailty-team-help-me", "n": "navigate", "a": ["PLwD", "50+"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 19, "t": "What Is the Non-Emergency Patient Transport Service (NEPTS), and How Can It Help You?", "u": "https://www.thegoodcompanypeople.org/resource/what-is-the-non-emergency-patient-transport-service-nepts-and-how-can-it-help-you", "n": "navigate", "a": ["PLwD", "50+", "Carer"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 20, "t": "Free counselling, without the long wait", "u": "https://www.thegoodcompanypeople.org/resource/free-counselling-without-the-long-wait", "n": "emotional", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "Very High", "5": "High", "6": "High"}}, {"id": 21, "t": "Dementia Wall", "u": null, "n": "dementia", "a": ["Carer"], "s": "To Do", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "High"}}, {"id": 22, "t": "Carer freebies", "u": null, "n": "financial", "a": ["Carer"], "s": "To Do", "st": {"2": "High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 23, "t": "Trackers", "u": null, "n": "independent", "a": ["Carer", "PLwD"], "s": "To Do", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "Very High"}}, {"id": 24, "t": "Sleep - Hints and hacks", "u": null, "n": "mobility", "a": ["Carer", "PLwD", "50+"], "s": "To Do", "st": {"1": "Medium", "2": "High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 25, "t": "Dementia - eating ice cream", "u": null, "n": "dementia", "a": ["Carer", "PLwD"], "s": "To Do", "st": {"2": "Medium", "3": "Very High", "4": "Very High"}}, {"id": 26, "t": "The Certainty of Change: Getting the Help of a Personal Assistant", "u": "https://www.thegoodcompanypeople.org/resource/the-certainty-of-change-getting-help", "n": "break_", "a": ["Carer"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High"}}, {"id": 27, "t": "A really useful online course to learn the basics about dementia", "u": "https://www.thegoodcompanypeople.org/resource/a-really-useful-online-course-to-learn-the-basics-about-dementia", "n": "dementia", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "Very High", "3": "Very High", "4": "Medium"}}, {"id": 28, "t": "When Time Travel Gets Confusing: Think of VERA", "u": "https://www.thegoodcompanypeople.org/resource/when-time-travel-gets-confusing-think-of-vera", "n": "dementia", "a": ["Carer"], "s": "Published", "st": {"2": "Medium", "3": "Very High", "4": "Very High", "5": "High"}}, {"id": 29, "t": "When Dementia Changes Behaviour: What to Look For and What to Do", "u": "https://www.thegoodcompanypeople.org/resource/when-behaviour-changes-what-to-know-and-what-to-do", "n": "dementia", "a": ["Carer"], "s": "Published", "st": {"2": "Very High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 30, "t": "Eat your way to a healthier brain", "u": "https://www.thegoodcompanypeople.org/resource/eat-your-way-to-a-healthier-brain", "n": "mobility", "a": ["PLwD", "50+", "Carer"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Medium", "6": "Medium"}}, {"id": 31, "t": "Support for Parkinson's", "u": "https://www.thegoodcompanypeople.org/resource/support-for-parkinson-s", "n": "navigate", "a": ["PLwD", "Carer"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 32, "t": "Living with Dementia: Our Journey and the 10 Lifestyle Changes We've Made", "u": "https://www.thegoodcompanypeople.org/resource/living-with-dementia-our-journey-and-the-steps-we-re-taking", "n": "dementia", "a": ["PLwD", "Carer"], "s": "Published", "st": {"1": "Very High", "2": "Very High", "3": "High", "4": "Medium"}}, {"id": 33, "t": "What Are Social Prescribers and How Can They Help You?", "u": "https://www.thegoodcompanypeople.org/resource/what-are-social-prescribers-and-how-can-they-help-you", "n": "navigate", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "Very High", "3": "High", "4": "Medium"}}, {"id": 34, "t": "Embracing Technology for Independence and Joy", "u": "https://www.thegoodcompanypeople.org/resource/embracing-technology-for-independence-and-joy", "n": "independent", "a": ["PLwD", "50+", "Carer"], "s": "Published", "st": {"1": "High", "2": "Very High", "3": "Very High", "4": "High"}}, {"id": 35, "t": "Getting Home from the Hospital: What You Need to Know", "u": "https://www.thegoodcompanypeople.org/resource/getting-home-from-the-hospital-what-you-need-to-know", "n": "navigate", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 36, "t": "Why 'I've already told you' rarely works", "u": "https://www.thegoodcompanypeople.org/resource/click-and-save", "n": "dementia", "a": ["Carer"], "s": "Published", "st": {"2": "High", "3": "Very High", "4": "Very High", "5": "High"}}, {"id": 37, "t": "Navigating the DoLS Process: A Wife's Perspective", "u": "https://www.thegoodcompanypeople.org/resource/navigating-the-dols-process-a-wife-s-perspective", "n": "navigate", "a": ["Carer"], "s": "Published", "st": {"3": "Medium", "4": "Very High", "5": "Very High"}}, {"id": 38, "t": "Persuading your Doctor something isn't quite right - a carers perspective", "u": "https://www.thegoodcompanypeople.org/resource/persuading-your-doctor-something-isn-t-quite-right", "n": "navigate", "a": ["Carer"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "High", "4": "Medium"}}, {"id": 39, "t": "Get Up Safely: How the iStumble App Can Help After a Fall", "u": "https://www.thegoodcompanypeople.org/resource/get-up-safely-how-the-istumble-app-can-help-after-a-fall", "n": "mobility", "a": ["PLwD", "50+"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 40, "t": "Supported holidays with Dementia Adventure", "u": "https://www.thegoodcompanypeople.org/resource/spring-into-something-new-with-dementia-adventure", "n": "break_", "a": ["Carer", "PLwD"], "s": "Published", "st": {"2": "Medium", "3": "Very High", "4": "Very High"}}, {"id": 41, "t": "Handy Tip to Save Time: Request Your Summary Care Record", "u": "https://www.thegoodcompanypeople.org/resource/save-time-with-this-handy-tip-request-your-summary-care-record", "n": "navigate", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Medium", "2": "High", "3": "Very High", "4": "Very High", "5": "High", "6": "Medium"}}, {"id": 42, "t": "Understanding Probate: A Step-by-Step Guide", "u": "https://www.thegoodcompanypeople.org/resource/a-guide-to-navigating-probate", "n": "financial", "a": ["Carer", "50+"], "s": "Published", "st": {"4": "Medium", "5": "High", "6": "Very High"}}, {"id": 43, "t": "I'm not a carer", "u": "https://www.thegoodcompanypeople.org/resource/i-m-not-a-carer", "n": "emotional", "a": ["Carer"], "s": "Published", "st": {"1": "Very High", "2": "Very High", "3": "Medium"}}, {"id": 44, "t": "What Is a Letter of Wishes and Why Might You Want One?", "u": "https://www.thegoodcompanypeople.org/resource/what-is-a-letter-of-wishes-and-why-might-you-want-one", "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "Very High", "3": "Very High", "4": "Medium"}}, {"id": 45, "t": "Why Lived Experience Matters: Introducing LEAP", "u": "https://www.thegoodcompanypeople.org/resource/why-lived-experience-matters-introducing-leap", "n": "experience", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Medium", "2": "Medium", "3": "High", "4": "Medium", "5": "Very High", "6": "Very High"}}, {"id": 46, "t": "Your Summer Wellbeing Check-In", "u": "https://www.thegoodcompanypeople.org/resource/your-summer-wellbeing-check-in", "n": "mobility", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 47, "t": "GEM STATES Info and Handout", "u": null, "n": "connect", "a": ["Carer", "PLwD", "50+"], "s": "To Do", "st": {"1": "Very High", "2": "Very High", "3": "Very High", "4": "Very High", "5": "Very High", "6": "Very High"}}, {"id": 48, "t": "Neighbourhood Support Team (NST) at ESCC", "u": null, "n": "navigate", "a": ["Carer", "PLwD", "50+"], "s": "To Do", "st": {"2": "Medium", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 49, "t": "What to expect when you take a driving assessment", "u": "https://www.thegoodcompanypeople.org/resource/what-to-expect-when-you-take-a-driving-assessment", "n": "dementia", "a": ["PLwD", "Carer"], "s": "Published", "st": {"2": "Very High", "3": "Very High", "4": "Medium"}}, {"id": 50, "t": "When Might It Be Time for a Care Home?", "u": "https://www.thegoodcompanypeople.org/resource/when-might-it-be-time-for-a-care-home", "n": "navigate", "a": ["Carer"], "s": "Published", "st": {"3": "Medium", "4": "Very High", "5": "Very High"}}, {"id": 51, "t": "Planning Ahead for Emergencies When You Live Alone", "u": "https://www.thegoodcompanypeople.org/resource/planning-ahead-for-emergencies-when-you-live-alone", "n": "independent", "a": ["50+", "PLwD"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Medium", "4": "Medium", "6": "High"}}, {"id": 52, "t": "Coach Holidays: Making Travel Possible with Dementia", "u": "https://www.thegoodcompanypeople.org/resource/coach-holidays-making-travel-possible-with-dementia", "n": "break_", "a": ["Carer", "PLwD"], "s": "Published", "st": {"2": "Medium", "3": "Very High", "4": "High"}}, {"id": 53, "t": "Managing Continence: What Helped Me as a Carer", "u": "https://www.thegoodcompanypeople.org/resource/managing-continence-what-helped-me-as-a-carer", "n": "dementia", "a": ["Carer"], "s": "Published", "st": {"3": "Medium", "4": "Very High", "5": "High"}}, {"id": 54, "t": "Supporting the Training of Our Future Doctors", "u": "https://www.thegoodcompanypeople.org/resource/supporting-the-training-of-our-future-doctors", "n": "experience", "a": ["Carer", "PLwD"], "s": "Published", "st": {"2": "Medium", "3": "High", "4": "Medium", "5": "High", "6": "Very High"}}, {"id": 55, "t": "Why We Should All Say 'Yes' to a Home Safety Visit", "u": "https://www.thegoodcompanypeople.org/resource/why-we-should-all-say-yes-to-a-home-safety-visit", "n": "independent", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 56, "t": "Living with the ReSPECT Form: a carer's perspective", "u": "https://www.thegoodcompanypeople.org/resource/living-with-the-respect-form-a-carer-s-perspective", "n": "navigate", "a": ["Carer"], "s": "Published", "st": {"3": "Medium", "4": "Very High", "5": "High"}}, {"id": 57, "t": "What Is a Power of Attorney and Why Might You Want One?", "u": "https://www.thegoodcompanypeople.org/resource/what-is-a-power-of-attorney-and-why-might-you-want-one", "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "High", "2": "Very High", "3": "Very High", "4": "Medium"}}, {"id": 58, "t": "Attendance Allowance: What It Is, Who Can Claim, and Why It Matters", "u": "https://www.thegoodcompanypeople.org/resource/attendance-allowance-what-it-is-who-can-claim-and-why-it-matters", "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "Very High", "5": "Medium"}}, {"id": 59, "t": "Making a Will and Planning Ahead", "u": "https://www.thegoodcompanypeople.org/resource/making-a-will-and-planning-ahead", "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Medium", "6": "Medium"}}, {"id": 60, "t": "Stay safe and supported: the Priority Services Register", "u": "https://www.thegoodcompanypeople.org/resource/stay-safe-and-supported-the-priority-services-register", "n": "independent", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "High", "4": "Medium"}}, {"id": 61, "t": "When Driving Becomes Difficult: Facing the Conversation About Dementia and the Car Keys", "u": "https://www.thegoodcompanypeople.org/resource/having-the-conversation-about-dementia-and-driving", "n": "dementia", "a": ["Carer", "PLwD"], "s": "Published", "st": {"2": "Very High", "3": "Very High", "4": "Medium"}}, {"id": 62, "t": "Finding Myself Again", "u": null, "n": "emotional", "a": ["Carer", "50+"], "s": "Draft", "st": {"5": "Medium", "6": "Very High"}}, {"id": 63, "t": "Who Decides if You Can't? What to Know About Power of Attorney", "u": null, "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Draft", "st": {"1": "Medium", "2": "Very High", "3": "Very High", "4": "High", "5": "Medium"}}, {"id": 64, "t": "Why Connection Is Good for Your Health", "u": null, "n": "emotional", "a": ["Carer", "PLwD", "50+"], "s": "Draft", "st": {"1": "Very High", "2": "High", "3": "High", "4": "Medium", "5": "Medium", "6": "High"}}, {"id": 65, "t": "It's Not Always Dementia", "u": null, "n": "dementia", "a": ["Carer", "PLwD", "50+"], "s": "Draft", "st": {"1": "High", "2": "Very High", "3": "Medium"}}, {"id": 66, "t": "Ten Ways to Plan for Change When Nothing Feels Urgent", "u": null, "n": "financial", "a": ["Carer", "PLwD", "50+"], "s": "Draft", "st": {"1": "Very High", "2": "Very High", "3": "High", "4": "Medium"}}, {"id": 67, "t": "Talking to Your GP About Memory or Mood", "u": null, "n": "navigate", "a": ["PLwD", "50+", "Carer"], "s": "Draft", "st": {"1": "High", "2": "Very High", "3": "Medium"}}, {"id": 68, "t": "What are the Sensory Impairment Team?", "u": null, "n": "navigate", "a": ["PLwD", "50+"], "s": "Draft", "st": {"2": "High", "3": "High", "4": "Very High", "5": "Medium"}}, {"id": 69, "t": "Monday Supper Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-monday-supper-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 70, "t": "Tuesday Lunch Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/tuesday-lunch-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 71, "t": "Tuesday Craft Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-tuesday-craft-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 72, "t": "Wednesday Snooker Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-wednesday-snooker-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 73, "t": "Wednesday Supper Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-wednesday-supper-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 74, "t": "Thursday Walking Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-thursday-walking-club", "n": "mobility", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "High", "4": "Medium", "5": "Medium", "6": "Very High"}}, {"id": 75, "t": "Thursday Art Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-thursday-art-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 76, "t": "Thursday Cinema Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/the-thursday-cinema-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "High", "4": "Medium", "5": "Medium", "6": "High"}}, {"id": 77, "t": "Saturday Company Club", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/saturday-company-club", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 78, "t": "Good Company HQ — Crowborough", "u": "https://www.thegoodcompanypeople.org/gchq", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "Very High", "3": "Very High", "4": "Very High", "5": "High", "6": "High"}}, {"id": 79, "t": "Good Company Concierge Service", "u": "https://www.thegoodcompanypeople.org/what-we-do/concierge", "n": "connect", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "Very High", "3": "Very High", "4": "Very High", "5": "Very High", "6": "Very High"}}, {"id": 80, "t": "Good Company Circles", "u": "https://www.thegoodcompanypeople.org/what-we-do", "n": "similar", "a": ["Carer"], "s": "Published", "st": {"1": "High", "2": "Very High", "3": "Very High", "4": "Very High", "5": "Very High", "6": "Very High"}}, {"id": 81, "t": "Monthly Events Calendar (downloadable PDF)", "u": "https://www.thegoodcompanypeople.org/what-we-do/clubs/events-calendar", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 82, "t": "Budding Monets and Busy Hands: Why Creativity Matters at Good Company", "u": "https://www.thegoodcompanypeople.org/resource/budding-monets-and-busy-hands-why-creativity-matters-at-good-company", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "5": "Medium", "6": "High"}}, {"id": 83, "t": "Snooker, Scrabble and Fish and Chips: A Wednesday Afternoon at Good Company", "u": "https://www.thegoodcompanypeople.org/resource/snooker-scrabble-and-fish-and-chips-a-wednesday-afternoon-at-good-company", "n": "hobbies", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "Very High", "4": "High", "6": "High"}}, {"id": 84, "t": "When Independence Changes: A Personal Reflection on Loneliness and Recovery", "u": "https://www.thegoodcompanypeople.org/resource/when-independence-changes-a-personal-reflection-on-loneliness-and-recovery", "n": "emotional", "a": ["50+", "Carer"], "s": "Published", "st": {"1": "Very High", "2": "Very High", "3": "High", "4": "Medium", "5": "Medium", "6": "High"}}, {"id": 85, "t": "ITV's This Morning Visits Good Company", "u": "https://www.thegoodcompanypeople.org/resource/itv-s-this-morning-visits-good-company", "n": "connect", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "High", "4": "Medium"}}, {"id": 86, "t": "Good Company Newsletter (monthly email)", "u": "https://www.thegoodcompanypeople.org/subscribe", "n": "connect", "a": ["Carer", "PLwD", "50+"], "s": "Published", "st": {"1": "Very High", "2": "High", "3": "High", "4": "High", "5": "High", "6": "High"}}];
+
+const CT={
+welcome:{title:"Welcome",icon:"\ud83d\udc4b",q:"What feels closest to your situation right now?",note:"There\u2019s no wrong answer \u2014 this just helps us find the right support for you.",opts:[
+{l:"I\u2019m supporting someone close to me",next:"c_living",t:{path:"carer"}},
+{l:"I\u2019ve been noticing some changes in myself",next:"p_notice",t:{path:"plwd"}},
+{l:"I\u2019m looking for connection and company",next:"f_week",t:{path:"50+"}},
+{l:"I\u2019m not sure \u2014 I\u2019m just exploring",next:"x_interest",t:{path:"explore"}}
+]},
+c_living:{title:"Your situation",icon:"\ud83c\udfe0",q:"Where does the person you support live right now?",opts:[
+{l:"At home with me",next:"c_duration",t:{living:"together"}},
+{l:"At home, but not with me",next:"c_distance",t:{living:"apart"}},
+{l:"In a care or nursing home",next:"c_carehome",t:{living:"care_home"}},
+{l:"They\u2019ve passed away",next:"c_bereaved",t:{living:"bereaved"}}
+]},
+c_duration:{title:"How things have changed",icon:"\u23f3",q:"How long have you felt things aren\u2019t quite the same?",note:"Everyone\u2019s experience is different \u2014 there\u2019s no right timeline.",opts:[
+{l:"It\u2019s quite recent \u2014 just starting to notice",next:"c_daytoday",t:{duration:"early"}},
+{l:"A while now \u2014 we\u2019ve been adapting",next:"c_daytoday",t:{duration:"adapting"}},
+{l:"A long time \u2014 it\u2019s getting harder",next:"c_daytoday",t:{duration:"long"}}
+]},
+c_daytoday:{title:"Day to day",icon:"\ud83d\udccb",q:"Which of these best describes a typical day?",opts:[
+{l:"Life is mostly normal \u2014 I just keep an eye on things",next:"c_feeling",t:{intensity:"light"}},
+{l:"We manage well, but I\u2019m doing more than I used to",next:"c_feeling",t:{intensity:"moderate"}},
+{l:"I\u2019m helping with most things now \u2014 it takes a lot",next:"c_time",t:{intensity:"heavy"}},
+{l:"Everything depends on me \u2014 I can barely step away",next:"c_time",t:{intensity:"total"}}
+]},
+c_time:{title:"Time for you",icon:"\u23f0",q:"How much time do you get to yourself in a typical week?",opts:[
+{l:"A day or more",next:"c_feeling",t:{time:"good"}},
+{l:"A few hours here and there",next:"c_feeling",t:{time:"some"}},
+{l:"An hour at most",next:"c_feeling",t:{time:"little"}},
+{l:"Almost none \u2014 I don\u2019t feel comfortable leaving them",next:"c_feeling",t:{time:"none"}}
+]},
+c_feeling:{title:"How you\u2019re doing",icon:"\ud83d\udc9b",q:"And how are you managing, honestly?",note:"There\u2019s no judgement here. Lots of people feel several of these at once.",opts:[
+{l:"I\u2019ve got this \u2014 it\u2019s manageable",next:"_end",t:{coping:"managing"}},
+{l:"Something doesn\u2019t feel quite right",next:"_end",t:{coping:"uneasy"}},
+{l:"I\u2019m struggling to keep going",next:"_end",t:{coping:"struggling"}},
+{l:"I\u2019m close to breaking point",next:"_end",t:{coping:"breaking"}}
+]},
+c_distance:{title:"From a distance",icon:"\ud83d\udcde",q:"What\u2019s your main concern right now?",note:"Supporting someone from a distance brings its own challenges.",opts:[
+{l:"I\u2019m worried something\u2019s changing but I\u2019m not sure",next:"c_feeling",t:{concern:"early_worry"}},
+{l:"They need more support than they\u2019re getting",next:"c_feeling",t:{concern:"more_support"}},
+{l:"I\u2019m trying to coordinate their care from here",next:"c_feeling",t:{concern:"coordinating"}}
+]},
+c_carehome:{title:"A big change",icon:"\ud83d\udc9c",q:"Moving someone into care is one of the hardest decisions. How are you finding it?",opts:[
+{l:"It\u2019s still very new \u2014 I\u2019m adjusting",next:"_end",t:{adjustment:"new"}},
+{l:"I\u2019m getting used to it, but it\u2019s hard",next:"_end",t:{adjustment:"adjusting"}},
+{l:"I feel a mix of guilt and relief",next:"_end",t:{adjustment:"mixed"}},
+{l:"I\u2019m starting to find my feet again",next:"_end",t:{adjustment:"finding_feet"}}
+]},
+c_bereaved:{title:"After caring",icon:"\ud83c\udf3f",q:"There\u2019s no right way to feel after losing someone you\u2019ve cared for. What resonates most?",opts:[
+{l:"It\u2019s still very raw",next:"_end",t:{grief:"raw"}},
+{l:"I\u2019m starting to find my way",next:"_end",t:{grief:"finding_way"}},
+{l:"I\u2019m ready to think about what\u2019s next",next:"_end",t:{grief:"ready"}}
+]},
+p_notice:{title:"What you\u2019ve noticed",icon:"\ud83c\udf24\ufe0f",q:"Sometimes things shift gradually. What feels closest to your experience?",note:"Lots of people notice changes \u2014 it doesn\u2019t always mean something serious.",opts:[
+{l:"Small things \u2014 forgetting names, losing my train of thought",next:"p_support",t:{changes:"mild"}},
+{l:"It\u2019s affecting my day-to-day more than I\u2019d like",next:"p_support",t:{changes:"moderate"}},
+{l:"I\u2019ve had a diagnosis and I\u2019m working out what it means",next:"p_support",t:{changes:"diagnosed"}},
+{l:"I\u2019d rather not say \u2014 I just want to see what\u2019s available",next:"p_support",t:{changes:"private"}}
+]},
+p_support:{title:"What would help",icon:"\ud83e\udd1d",q:"What would make the biggest difference for you right now?",opts:[
+{l:"Understanding what\u2019s happening and what to expect",next:"_end",t:{need:"understanding"}},
+{l:"Meeting people who get it",next:"_end",t:{need:"connection"}},
+{l:"Practical tips for day-to-day life",next:"_end",t:{need:"practical"}},
+{l:"Just having someone to talk to",next:"_end",t:{need:"talk"}}
+]},
+f_week:{title:"Your week",icon:"\u2600\ufe0f",q:"Thinking about a typical week, which feels closest?",opts:[
+{l:"I\u2019m fairly active \u2014 but I\u2019d like to do more",next:"f_looking",t:{activity:"active"}},
+{l:"My world has got smaller than I\u2019d like",next:"f_looking",t:{activity:"shrinking"}},
+{l:"I\u2019ve been through a big change recently",next:"f_change",t:{activity:"change"}},
+{l:"I used to care for someone \u2014 now I\u2019m finding my way",next:"c_bereaved",t:{activity:"post_caring",path:"carer"}}
+]},
+f_change:{title:"What\u2019s changed",icon:"\ud83d\udd04",q:"What kind of change have you been through?",opts:[
+{l:"Retirement or a big life transition",next:"f_looking",t:{change_type:"transition"}},
+{l:"Losing someone close",next:"f_looking",t:{change_type:"bereavement"}},
+{l:"Health changes",next:"f_looking",t:{change_type:"health"}},
+{l:"I\u2019d rather not say",next:"f_looking",t:{change_type:"private"}}
+]},
+f_looking:{title:"What you\u2019re looking for",icon:"\u2728",q:"What would you most like from Good Company?",opts:[
+{l:"New activities and things to do",next:"_end",t:{want:"activities"}},
+{l:"People to connect with",next:"_end",t:{want:"people"}},
+{l:"Support and someone to talk to",next:"_end",t:{want:"support"}},
+{l:"I\u2019m not sure yet \u2014 I\u2019m open to anything",next:"_end",t:{want:"open"}}
+]},
+x_interest:{title:"What caught your eye",icon:"\ud83d\udd0d",q:"What interested you about Good Company?",opts:[
+{l:"Someone told me about it",next:"x_who",t:{source:"referral"}},
+{l:"I saw something online or in the community",next:"x_who",t:{source:"online"}},
+{l:"A professional suggested I get in touch",next:"x_who",t:{source:"professional"}}
+]},
+x_who:{title:"About you",icon:"\ud83d\udc64",q:"Which of these feels most like you?",note:"This helps us point you in the right direction \u2014 you can always change your mind.",opts:[
+{l:"I think someone I know might need support",next:"c_living",t:{path:"carer"}},
+{l:"I\u2019m looking for support for myself",next:"p_notice",t:{path:"plwd"}},
+{l:"I\u2019d just like some company and connection",next:"f_week",t:{path:"50+"}}
+]}
+};
+
+function suggestState(tags){
+if(tags.living==="bereaved"||tags.grief)return 6;
+if(tags.living==="care_home")return 5;
+if(tags.activity==="post_caring")return 6;
+if(tags.change_type==="bereavement")return 6;
+if(tags.path==="plwd"){
+if(tags.changes==="mild"||tags.changes==="private")return 1;
+if(tags.changes==="moderate")return 2;
+if(tags.changes==="diagnosed")return 3;
+return 1;
+}
+if(tags.path==="50+")return 1;
+if(tags.living==="apart"){
+if(tags.concern==="early_worry")return 1;
+if(tags.concern==="coordinating"){
+if(tags.coping==="struggling"||tags.coping==="breaking")return 4;
+return 3;
+}
+return 2;
+}
+let b=2;
+if(tags.duration==="adapting")b=3;
+if(tags.duration==="long")b=4;
+if(tags.intensity==="light")b=Math.min(b,2);
+if(tags.intensity==="moderate")b=Math.max(b,3);
+if(tags.intensity==="heavy"||tags.intensity==="total")b=Math.max(b,4);
+if(tags.time==="little"||tags.time==="none")b=Math.max(b,4);
+if(tags.coping==="struggling"||tags.coping==="breaking")b=4;
+if(tags.coping==="managing"&&b>3)b=3;
+return b;
+}
+
+function rs(r){if(!r)return 0;if(r.includes("Very High"))return 5;if(r==="High")return 4;if(r.includes("High"))return 3;if(r==="Medium")return 3;if(r.includes("Medium"))return 2;return 1}
+function rb(r){if(!r)return"#BDC3C7";if(r.includes("Very High"))return"#C0392B";if(r==="High")return"#E67E22";if(r.includes("High"))return"#F39C12";if(r==="Medium")return"#2E86C1";if(r.includes("Medium"))return"#5DADE2";return"#BDC3C7"}
+
+function CirclesScreen(){
+const[exp,setExp]=S(null);
+return e("div",{className:"content"},
+e("h2",{style:{fontSize:22,fontWeight:700,color:"#2C3E50",marginBottom:4}},"The Six Circles"),
+e("p",{style:{fontSize:13,color:"#888",lineHeight:1.4,marginBottom:16}},"Each Circle represents an emotional stage in the journey of caring. Tap to explore."),
+STATES.map(s=>e("div",{key:s.id,className:"card"+(exp===s.id?" expanded":""),onClick:()=>setExp(exp===s.id?null:s.id),style:{borderColor:exp===s.id?s.color:"#EBE9E6"}},
+e("div",{style:{padding:14}},
+e("div",{style:{display:"flex",alignItems:"center",gap:10}},
+e("div",{className:"circle-num",style:{background:s.color}},s.id),
+e("div",{style:{flex:1}},
+e("div",{style:{fontSize:15,fontWeight:700,color:"#2C3E50"}},s.name),
+e("div",{style:{fontSize:12,color:"#888"}},s.tagline)),
+e("span",{style:{fontSize:18,color:"#ccc",transform:exp===s.id?"rotate(180deg)":"none",transition:"transform 0.2s"}},"\u25be")),
+e("div",{style:{marginTop:8,padding:"8px 10px",background:s.color+"08",borderRadius:8,borderLeft:"3px solid "+s.color}},
+e("div",{style:{fontSize:13,fontStyle:"italic",color:"#555",lineHeight:1.4}},"\u201c"+s.quote+"\u201d"))),
+exp===s.id&&e("div",{style:{padding:"0 14px 14px",borderTop:"1px solid #F0EEEB"}},
+e("p",{style:{fontSize:13,color:"#555",lineHeight:1.5,margin:"12px 0"}},s.summary),
+e("div",{style:{marginBottom:12}},
+e("div",{style:{fontSize:10,fontWeight:700,color:s.color,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6}},"Who might be here"),
+s.whoIsHere.map((w,i)=>e("div",{key:i,className:"indicator-line",style:{borderLeftColor:s.color+"30"}},w))),
+e("div",{style:{marginBottom:12}},
+e("div",{style:{fontSize:10,fontWeight:700,color:"#E67E22",textTransform:"uppercase",letterSpacing:0.8,marginBottom:6}},"Emotional indicators"),
+s.emotionalIndicators.map((ei,i)=>e("div",{key:i,className:"indicator-line",style:{borderLeftColor:"#F5A62330"}},ei))),
+s.realInsights&&e("div",{className:"insight-box"},
+e("div",{style:{fontSize:10,fontWeight:700,color:"#F5A623",textTransform:"uppercase",letterSpacing:0.8,marginBottom:6}},"\ud83d\udca1 "+s.realInsights.title),
+s.realInsights.insights.map((ins,i)=>e("div",{key:i,className:"indicator-line",style:{borderLeftColor:"#F5A62340",color:"#666"}},ins)))))))}
+
+function MatchScreen(){
+const[st,setSt]=S(null);
+const[nd,setNd]=S(null);
+const[ex,setEx]=S(null);
+const res=M(()=>{
+if(!st)return[];
+const sd=MX[st];if(!sd)return[];
+let ent=NEEDS.map(n=>({...n,...(sd[n.id]||{})})).filter(x=>x.r&&rs(x.r)>1);
+if(nd)ent=ent.filter(x=>x.id===nd);
+return ent.sort((a,b)=>rs(b.r)-rs(a.r));
+},[st,nd]);
+const getArticles=(stateId,needId)=>{
+return KNOWHOW.filter(a=>a.n===needId&&a.st[stateId]).sort((a,b)=>rs(b.st[stateId])-rs(a.st[stateId]));
+};
+return e("div",{className:"content"},
+e("h2",{style:{fontSize:22,fontWeight:700,color:"#2C3E50",marginBottom:4}},"Match"),
+e("p",{style:{fontSize:13,color:"#888",lineHeight:1.4,marginBottom:16}},"Select their Circle, then filter by need to find the right support and articles to share."),
+e("div",{style:{marginBottom:16}},
+e("div",{className:"section-label"},"Which Circle are they in?"),
+e("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+STATES.map(s=>e("button",{key:s.id,onClick:()=>{setSt(s.id);setNd(null);setEx(null)},style:{padding:"10px",borderRadius:12,border:st===s.id?"2px solid "+s.color:"2px solid #E8E6E3",background:st===s.id?s.color+"11":"#fff",cursor:"pointer",textAlign:"left",transition:"all 0.2s",fontFamily:"DM Sans,sans-serif"}},
+e("div",{style:{display:"flex",alignItems:"center",gap:6}},
+e("div",{className:"circle-num-sm",style:{background:st===s.id?s.color:"#ddd"}},s.id),
+e("div",{style:{fontSize:12,fontWeight:600,color:st===s.id?s.color:"#555"}},s.name)))))),
+st&&e("div",{style:{marginBottom:16}},
+e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},
+e("div",{className:"section-label",style:{marginBottom:0}},"Filter by need"),
+nd&&e("button",{onClick:()=>setNd(null),style:{fontSize:11,color:"#F5A623",background:"none",border:"none",cursor:"pointer",fontWeight:600}},"Show all")),
+e("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+NEEDS.map(n=>{const sc=MX[st]?.[n.id]?rs(MX[st][n.id].r):0;if(sc<=1)return null;return e("button",{key:n.id,onClick:()=>setNd(nd===n.id?null:n.id),className:"chip"+(nd===n.id?" active":"")},n.icon+" "+n.short)}))),
+res.length>0&&e("div",null,
+e("div",{className:"section-label"},res.length+" result"+(res.length!==1?"s":"")),
+res.map((en,i)=>{
+const arts=st?getArticles(st,en.id):[];
+const pubArts=arts.filter(a=>a.s==="Published");
+const otherArts=arts.filter(a=>a.s!=="Published");
+return e("div",{key:en.id,className:"card"+(ex===i?" expanded":""),onClick:()=>setEx(ex===i?null:i),style:{padding:14}},
+e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
+e("div",{style:{display:"flex",gap:10,alignItems:"flex-start",flex:1}},
+e("span",{style:{fontSize:20}},en.icon),
+e("div",{style:{flex:1}},
+e("div",{style:{fontSize:13,fontWeight:600,color:"#333",marginBottom:4}},en.name),
+e("div",{style:{fontSize:12,color:"#777",lineHeight:1.4}},en.d))),
+e("div",{style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,marginLeft:8}},
+e("span",{className:"badge",style:{background:rb(en.r)}},en.r),
+pubArts.length>0&&e("span",{style:{fontSize:10,color:"#888"}},pubArts.length+" article"+(pubArts.length!==1?"s":"")))),
+ex===i&&e("div",{onClick:ev=>ev.stopPropagation(),style:{marginTop:14,paddingTop:14,borderTop:"1px solid #F0EEEB"}},
+en.p&&e("div",{style:{marginBottom:12}},
+e("div",{style:{fontSize:10,fontWeight:700,color:"#2E86C1",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}},"Suggested Prompt"),
+e("div",{className:"prompt-box"},"\u201c"+en.p+"\u201d")),
+en.k&&e("div",{style:{marginBottom:12}},
+e("div",{style:{fontSize:10,fontWeight:700,color:"#F5A623",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}},"Know-How Guidance"),
+e("div",{className:"knowhow-box"},en.k)),
+pubArts.length>0&&e("div",{style:{marginBottom:12}},
+e("div",{style:{fontSize:10,fontWeight:700,color:"#27AE60",textTransform:"uppercase",letterSpacing:0.8,marginBottom:6}},"Articles to Share ("+pubArts.length+")"),
+pubArts.map(a=>e("div",{key:a.id,style:{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",background:"#F8FBF8",borderRadius:8,marginBottom:4,border:"1px solid #E8F5E9"}},
+e("span",{className:"badge",style:{background:rb(a.st[st]),fontSize:9,padding:"2px 6px"}},a.st[st]),
+e("a",{href:a.u,target:"_blank",rel:"noopener",onClick:ev=>ev.stopPropagation(),style:{flex:1,fontSize:12,color:"#2E7D32",textDecoration:"none",fontWeight:500,lineHeight:1.3}},a.t),
+e("div",{style:{display:"flex",gap:3,flexShrink:0}},
+a.a.map(aud=>e("span",{key:aud,style:{fontSize:8,padding:"1px 4px",borderRadius:3,background:aud==="Carer"?"#E3F2FD":aud==="PLwD"?"#FFF3E0":"#F3E5F5",color:aud==="Carer"?"#1565C0":aud==="PLwD"?"#E65100":"#7B1FA2"}},aud)))))),
+otherArts.length>0&&e("div",null,
+e("div",{style:{fontSize:10,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:0.8,marginBottom:6}},"In Development ("+otherArts.length+")"),
+otherArts.map(a=>e("div",{key:a.id,style:{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:"#FAFAFA",borderRadius:8,marginBottom:4,border:"1px dashed #DDD"}},
+e("span",{className:"badge",style:{background:rb(a.st[st]),fontSize:9,padding:"2px 6px"}},a.st[st]),
+e("span",{style:{flex:1,fontSize:12,color:"#999",lineHeight:1.3}},a.t),
+e("span",{style:{fontSize:9,padding:"2px 6px",borderRadius:4,background:a.s==="Draft"?"#FFF8E1":"#FFEBEE",color:a.s==="Draft"?"#F9A825":"#C62828",fontWeight:600}},a.s))))))})),
+!st&&e("div",{style:{textAlign:"center",padding:40,color:"#BBB"}},
+e("div",{style:{fontSize:40,marginBottom:8}},"\ud83c\udfaf"),
+e("div",{style:{fontSize:14,fontWeight:500,color:"#999"}},"Select a Circle above to see matching support")))}
+
+function ConvoScreen(){
+const[hist,setHist]=S(["welcome"]);
+const[tags,setTags]=S({});
+const[sel,setSel]=S({});
+const[done,setDone]=S(false);
+const[selfId,setSelfId]=S(null);
+const cur=hist[hist.length-1];
+const node=CT[cur];
+const pick=(nodeId,optIdx)=>{
+const opt=CT[nodeId].opts[optIdx];
+const newTags={...tags,...opt.t};
+const newSel={...sel,[nodeId]:optIdx};
+setTags(newTags);setSel(newSel);
+if(opt.next==="_end"){setDone(true)}
+else{setHist(h=>[...h,opt.next])}
+};
+const goBack=()=>{
+if(hist.length<=1)return;
+const prev=hist[hist.length-1];
+const newHist=hist.slice(0,-1);
+const newSel={...sel};delete newSel[prev];
+const newTags={};newHist.forEach(nid=>{if(newSel[nid]!==undefined){const o=CT[nid].opts[newSel[nid]];if(o&&o.t)Object.assign(newTags,o.t)}});
+setHist(newHist);setSel(newSel);setTags(newTags);setDone(false);
+};
+const reset=()=>{setHist(["welcome"]);setTags({});setSel({});setDone(false);setSelfId(null)};
+const sg=suggestState(tags);
+const sug=STATES.find(x=>x.id===sg);
+const pathLabel=tags.path==="carer"?"Supporting someone":tags.path==="plwd"?"Noticing changes":tags.path==="50+"?"Looking for connection":"Exploring";
+if(done){
+const topArts=KNOWHOW.filter(a=>a.st[selfId||sg]&&a.s==="Published").sort((a,b)=>rs(b.st[selfId||sg])-rs(a.st[selfId||sg])).slice(0,5);
+const chosen=selfId?STATES.find(x=>x.id===selfId):sug;
+return e("div",{className:"content"},
+e("h2",{style:{fontSize:22,fontWeight:700,color:"#2C3E50",marginBottom:4}},"Your Journey"),
+e("p",{style:{fontSize:13,color:"#888",lineHeight:1.4,marginBottom:16}},"Based on what you\u2019ve shared, here\u2019s what we think might resonate."),
+hist.filter(nid=>sel[nid]!==undefined).map(nid=>{const nd=CT[nid];const opt=nd.opts[sel[nid]];return e("div",{key:nid,style:{background:"#fff",borderRadius:10,padding:12,marginBottom:6,border:"1px solid #EBE9E6"}},
+e("div",{style:{fontSize:10,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:0.5}},nd.icon+" "+nd.title),
+e("div",{style:{fontSize:13,color:"#333",marginTop:4}},opt.l))}),
+e("div",{style:{background:sug.color+"10",borderRadius:14,padding:16,marginTop:16,border:"1px solid "+sug.color+"30"}},
+e("div",{style:{fontSize:10,fontWeight:700,color:sug.color,textTransform:"uppercase",letterSpacing:0.8,marginBottom:8}},"We think you might be here"),
+e("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:10}},
+e("div",{className:"circle-num-sm",style:{background:sug.color,width:32,height:32,fontSize:14}},sug.id),
+e("div",null,
+e("div",{style:{fontSize:15,fontWeight:700,color:"#2C3E50"}},sug.name),
+e("div",{style:{fontSize:12,color:"#888"}},sug.tagline))),
+e("div",{style:{fontSize:13,color:"#555",lineHeight:1.5,marginBottom:12}},sug.summary),
+e("div",{style:{fontSize:13,fontStyle:"italic",color:"#555",background:"#fff",padding:10,borderRadius:8}},"\u201cDoes this feel right, or is there another Circle that feels closer to where you are?\u201d"),
+e("div",{style:{display:"flex",flexWrap:"wrap",gap:6,marginTop:12}},
+STATES.map(s=>e("button",{key:s.id,onClick:()=>setSelfId(s.id),style:{padding:"6px 10px",borderRadius:8,border:(selfId||sg)===s.id?"2px solid "+s.color:"1px solid #E0E0E0",background:(selfId||sg)===s.id?s.color+"15":"#fff",cursor:"pointer",fontSize:11,fontWeight:(selfId||sg)===s.id?700:500,color:(selfId||sg)===s.id?s.color:"#777",fontFamily:"DM Sans,sans-serif",transition:"all 0.15s"}},s.short)))),
+topArts.length>0&&e("div",{style:{marginTop:20}},
+e("div",{style:{fontSize:11,fontWeight:700,color:"#27AE60",textTransform:"uppercase",letterSpacing:0.8,marginBottom:8}},"Articles that might help"),
+topArts.map(a=>e("div",{key:a.id,style:{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",background:"#F8FBF8",borderRadius:8,marginBottom:4,border:"1px solid #E8F5E9"}},
+e("span",{className:"badge",style:{background:rb(a.st[selfId||sg]),fontSize:9,padding:"2px 6px"}},a.st[selfId||sg]),
+e("a",{href:a.u,target:"_blank",rel:"noopener",style:{flex:1,fontSize:12,color:"#2E7D32",textDecoration:"none",fontWeight:500,lineHeight:1.3}},a.t)))),
+e("button",{onClick:reset,className:"btn-primary",style:{width:"100%",marginTop:20}},"Start Again"))}
+if(!node)return e("div",{className:"content"},e("p",null,"Something went wrong."),e("button",{onClick:reset,className:"btn-primary"},"Start again"));
+return e("div",{className:"content"},
+e("h2",{style:{fontSize:22,fontWeight:700,color:"#2C3E50",marginBottom:4}},"Finding Your Circle"),
+e("p",{style:{fontSize:13,color:"#888",lineHeight:1.4,marginBottom:16}},"A few gentle questions to help us understand where you are. Nothing here is a test."),
+e("div",{style:{display:"flex",gap:4,marginBottom:16,alignItems:"center"}},
+hist.map((nid,i)=>e("div",{key:nid,style:{width:i===hist.length-1?24:12,height:6,borderRadius:3,background:i===hist.length-1?"#F5A623":"#F5A62360",transition:"all 0.3s"}})),
+e("div",{style:{flex:1,height:2,background:"#EBE9E6",borderRadius:1,marginLeft:4}})),
+tags.path&&e("div",{style:{fontSize:10,color:"#BBB",marginBottom:10,textTransform:"uppercase",letterSpacing:0.8}},pathLabel),
+e("div",{style:{background:"#fff",borderRadius:16,padding:20,border:"1px solid #EBE9E6",minHeight:280}},
+e("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:16}},
+e("span",{style:{fontSize:24}},node.icon),
+e("div",{style:{fontSize:16,fontWeight:700,color:"#2C3E50"}},node.title)),
+e("div",{style:{fontSize:14,color:"#333",marginBottom:8,lineHeight:1.5}},node.q),
+node.note&&e("div",{style:{fontSize:12,color:"#999",fontStyle:"italic",marginBottom:14,lineHeight:1.4}},node.note),
+e("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+node.opts.map((opt,i)=>e("button",{key:i,onClick:()=>pick(cur,i),className:"convo-option"+(sel[cur]===i?" selected":"")},opt.l)))),
+e("div",{style:{display:"flex",gap:10,marginTop:16}},
+hist.length>1&&e("button",{onClick:goBack,className:"btn-secondary",style:{flex:1}},"Back")))}
+
+function GapScreen(){
+const gaps=M(()=>{const gl=[];Object.entries(MX).forEach(([sid,needs])=>{Object.entries(needs).forEach(([nid,d])=>{const sc=rs(d.r);const artCount=KNOWHOW.filter(a=>a.n===nid&&a.st[+sid]&&a.s==="Published").length;if(sc>=3&&artCount===0){gl.push({sid:+sid,sn:STATES.find(s=>s.id===+sid)?.name||"",sc2:STATES.find(s=>s.id===+sid)?.color||"#999",nid,nn:NEEDS.find(n=>n.id===nid)?.name||nid,ni:NEEDS.find(n=>n.id===nid)?.icon||"\ud83d\udccb",r:d.r,d:d.d,score:sc,artCount})}})});return gl.sort((a,b)=>b.score-a.score)},[]);
+const hr=M(()=>{let c=0;Object.values(MX).forEach(n=>{Object.values(n).forEach(d=>{if(rs(d.r)>=3)c++})});return c},[]);
+const cov=hr-gaps.length;const pct=Math.round((cov/hr)*100);
+return e("div",{className:"content"},
+e("h2",{style:{fontSize:22,fontWeight:700,color:"#2C3E50",marginBottom:4}},"Know-How Gaps"),
+e("p",{style:{fontSize:13,color:"#888",marginBottom:16}},"State + Need combinations rated Medium or higher with no published articles."),
+e("div",{style:{background:"#fff",borderRadius:14,padding:16,border:"1px solid #EBE9E6",marginBottom:16}},
+e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:10}},
+e("div",null,e("div",{style:{fontSize:28,fontWeight:700,color:pct>75?"#27AE60":"#E67E22"}},pct+"%"),e("div",{style:{fontSize:11,color:"#999"}},"Coverage")),
+e("div",{style:{textAlign:"center"}},e("div",{style:{fontSize:14,fontWeight:600,color:"#2E86C1"}},KNOWHOW.filter(a=>a.s==="Published").length),e("div",{style:{fontSize:11,color:"#999"}},"Published")),
+e("div",{style:{textAlign:"right"}},e("div",{style:{fontSize:14,fontWeight:600,color:"#C0392B"}},gaps.length),e("div",{style:{fontSize:11,color:"#999"}},"Gaps"))),
+e("div",{style:{background:"#F0EEEB",borderRadius:6,height:8,overflow:"hidden"}},
+e("div",{style:{background:pct>75?"#27AE60":"#E67E22",height:"100%",width:pct+"%",borderRadius:6}})),
+e("div",{style:{fontSize:11,color:"#999",marginTop:6}},cov+" of "+hr+" medium+ relevance combinations have published articles")),
+gaps.map((g,i)=>e("div",{key:i,style:{background:"#fff",borderRadius:10,padding:12,marginBottom:8,border:"1px solid #EBE9E6",borderLeft:"3px solid "+rb(g.r)}},
+e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}},
+e("div",{style:{fontSize:13,fontWeight:600,color:"#333"}},g.ni+" "+g.nn),
+e("span",{className:"badge",style:{background:rb(g.r)}},g.r)),
+e("span",{style:{fontSize:10,background:g.sc2+"18",padding:"2px 6px",borderRadius:4,color:g.sc2}},g.sn),
+g.d&&g.d!=="N/A"&&e("div",{style:{fontSize:11,color:"#999",marginTop:6}},g.d))),
+gaps.length===0&&e("div",{style:{textAlign:"center",padding:30,color:"#27AE60"}},e("div",{style:{fontSize:40}},"\ud83c\udf89"),e("div",{style:{fontSize:16,fontWeight:600,marginTop:8}},"Full coverage!")))}
+
+function SearchScreen(){
+const[q,setQ]=S("");
+const[fNeed,setFNeed]=S(null);
+const[fAud,setFAud]=S(null);
+const[expanded,setExpanded]=S(null);
+const results=M(()=>{
+let arts=KNOWHOW.filter(a=>a.s==="Published");
+if(q.trim()){const lc=q.toLowerCase();arts=arts.filter(a=>a.t.toLowerCase().includes(lc))}
+if(fNeed)arts=arts.filter(a=>a.n===fNeed);
+if(fAud)arts=arts.filter(a=>a.a.includes(fAud));
+return arts;
+},[q,fNeed,fAud]);
+const needCounts=M(()=>{const c={};KNOWHOW.filter(a=>a.s==="Published").forEach(a=>{c[a.n]=(c[a.n]||0)+1});return c},[]);
+return e("div",{className:"content"},
+e("h2",{style:{fontSize:22,fontWeight:700,color:"#2C3E50",marginBottom:4}},"Search Know-How"),
+e("p",{style:{fontSize:13,color:"#888",lineHeight:1.4,marginBottom:16}},"Find articles, guides, and resources from the Good Company library."),
+e("div",{style:{position:"relative",marginBottom:14}},
+e("input",{type:"text",value:q,onChange:ev=>setQ(ev.target.value),placeholder:"Search by keyword\u2026",style:{width:"100%",padding:"12px 14px 12px 36px",borderRadius:12,border:"1px solid #E0E0E0",fontSize:14,fontFamily:"DM Sans,sans-serif",background:"#fff",boxSizing:"border-box",outline:"none"}}),
+e("span",{style:{position:"absolute",left:12,top:13,fontSize:16,color:"#BBB"}},"\ud83d\udd0d")),
+e("div",{style:{display:"flex",gap:6,marginBottom:6,flexWrap:"wrap"}},
+e("button",{onClick:()=>setFAud(null),className:"chip"+(fAud===null?" active":"")},"\ud83d\udc65 All"),
+["Carer","PLwD","50+"].map(a=>e("button",{key:a,onClick:()=>setFAud(fAud===a?null:a),className:"chip"+(fAud===a?" active":"")},a))),
+e("div",{style:{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}},
+e("button",{onClick:()=>setFNeed(null),style:{fontSize:10,padding:"4px 8px",borderRadius:6,border:fNeed===null?"1px solid #F5A623":"1px solid #E0E0E0",background:fNeed===null?"#FEF3E2":"#fff",cursor:"pointer",color:fNeed===null?"#E8960A":"#888",fontWeight:600,fontFamily:"DM Sans,sans-serif"}},"All topics"),
+NEEDS.filter(n=>needCounts[n.id]).map(n=>e("button",{key:n.id,onClick:()=>setFNeed(fNeed===n.id?null:n.id),style:{fontSize:10,padding:"4px 8px",borderRadius:6,border:fNeed===n.id?"1px solid #F5A623":"1px solid #E0E0E0",background:fNeed===n.id?"#FEF3E2":"#fff",cursor:"pointer",color:fNeed===n.id?"#E8960A":"#888",fontWeight:500,fontFamily:"DM Sans,sans-serif"}},n.icon+" "+n.short+" ("+needCounts[n.id]+")"))),
+e("div",{style:{fontSize:11,color:"#999",marginBottom:10}},results.length+" article"+(results.length!==1?"s":"")+(q||fNeed||fAud?" found":"")),
+results.map(a=>{
+const ni=NEEDS.find(n=>n.id===a.n);
+return e("div",{key:a.id,style:{background:"#fff",borderRadius:10,padding:12,marginBottom:6,border:"1px solid #EBE9E6",cursor:"pointer",transition:"all 0.15s"},onClick:()=>setExpanded(expanded===a.id?null:a.id)},
+e("div",{style:{display:"flex",alignItems:"flex-start",gap:8}},
+e("span",{style:{fontSize:16}},ni?ni.icon:"\ud83d\udccb"),
+e("div",{style:{flex:1}},
+e("div",{style:{fontSize:13,fontWeight:600,color:"#333",lineHeight:1.3,marginBottom:4}},a.t),
+e("div",{style:{display:"flex",gap:4,flexWrap:"wrap"}},
+a.a.map(aud=>e("span",{key:aud,style:{fontSize:9,padding:"1px 5px",borderRadius:3,background:aud==="Carer"?"#E3F2FD":aud==="PLwD"?"#FFF3E0":"#F3E5F5",color:aud==="Carer"?"#1565C0":aud==="PLwD"?"#E65100":"#7B1FA2"}},aud)))),
+e("span",{style:{fontSize:18,color:"#ccc",transform:expanded===a.id?"rotate(180deg)":"none",transition:"transform 0.2s",flexShrink:0}},"\u25be")),
+expanded===a.id&&e("div",{onClick:ev=>ev.stopPropagation(),style:{marginTop:10,paddingTop:10,borderTop:"1px solid #F0EEEB"}},
+e("div",{style:{fontSize:11,color:"#777",marginBottom:8}},"Relevant to:"),
+e("div",{style:{display:"flex",flexWrap:"wrap",gap:4,marginBottom:10}},
+Object.entries(a.st).map(([sid,rel])=>{const st=STATES.find(s=>s.id===+sid);return st?e("span",{key:sid,style:{fontSize:10,padding:"2px 8px",borderRadius:6,background:st.color+"15",color:st.color,fontWeight:500,border:"1px solid "+st.color+"30"}},st.short+" \u2022 "+rel):null})),
+a.u&&e("a",{href:a.u,target:"_blank",rel:"noopener",style:{display:"block",padding:"10px 14px",background:"#F5A623",color:"#fff",borderRadius:10,textDecoration:"none",fontSize:13,fontWeight:600,textAlign:"center"}},"Read article \u2192")))}),
+results.length===0&&e("div",{style:{textAlign:"center",padding:40,color:"#BBB"}},
+e("div",{style:{fontSize:40,marginBottom:8}},"\ud83d\udcda"),
+e("div",{style:{fontSize:14,fontWeight:500,color:"#999"}},"No articles match your search")))}
+
+function App(){
+const[tab,setTab]=S("convo");
+const tabs=[{id:"convo",label:"My Journey",icon:"\ud83d\udcac"},{id:"circles",label:"Circles",icon:"\u2b55"},{id:"match",label:"Match",icon:"\ud83c\udfaf"},{id:"search",label:"Search",icon:"\ud83d\udd0e"},{id:"gaps",label:"Gaps",icon:"\ud83d\udcca"}];
+return e("div",{className:"app"},
+e("div",{className:"header"},
+e("div",{className:"header-inner"},
+e("div",{className:"header-icon"},"\ud83e\udd1d"),
+e("div",null,
+e("div",{className:"header-title"},"Good Company Companion"),
+e("div",{className:"header-sub"},"Your guide to the right support")))),
+e("div",null,
+tab==="convo"&&e(ConvoScreen),
+tab==="circles"&&e(CirclesScreen),
+tab==="match"&&e(MatchScreen),
+tab==="search"&&e(SearchScreen),
+tab==="gaps"&&e(GapScreen)),
+e("div",{className:"nav"},
+tabs.map(t=>e("button",{key:t.id,onClick:()=>setTab(t.id),className:"nav-btn"+(tab===t.id?" active":"")},
+e("span",{className:"nav-icon"},t.icon),
+e("span",{className:"nav-label"},t.label)))))}
+
+ReactDOM.createRoot(document.getElementById("root")).render(e(App));
+</script>
+</body>
+</html>
